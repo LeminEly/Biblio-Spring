@@ -7,65 +7,41 @@ API REST de gestion de bibliothèque avec Spring Boot 4, PostgreSQL, authentific
 ## Prérequis
 
 - **Java 17+** — vérifie avec `java -version`
+- **PostgreSQL** — installé et en cours d'exécution
 - **Maven** — ou utilise `./mvnw` fourni dans le projet
 
 ---
 
-## 1. Lancer l'application
+## 1. Créer la base de données
+
+```bash
+sudo -u postgres createdb bibliotheque
+```
+
+## 2. Configurer la connexion
+
+Ouvre `BibliothequeApp/src/main/resources/application.properties` et modifie le mot de passe si besoin :
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/bibliotheque
+spring.datasource.username=postgres
+spring.datasource.password=ton-mot-de-passe
+```
+
+## 3. Lancer l'application
 
 ```bash
 cd BibliothequeApp
 ./mvnw spring-boot:run
 ```
 
-L'application démarre sur **http://localhost:8081**.
+L'application démarre sur **http://localhost:8081** et se connecte à PostgreSQL.
 
-> **Par défaut**, l'application utilise une base de données **H2 en mémoire** (aucune installation requise).
-> Pour utiliser **PostgreSQL** (production), voir la section [Passer en PostgreSQL](#passer-en-postgresql).
-
----
-
-## 2. Utiliser l'application PostgreSQL (optionnel)
-
-Si tu veux utiliser PostgreSQL au lieu de H2 :
-
-**a. Assure-toi que PostgreSQL est démarré :**
-```bash
-sudo systemctl start postgresql
-pg_isready
-```
-
-**b. Crée la base de données :**
-```bash
-sudo -u postgres createdb bibliotheque
-# ou si tu es déjà dans psql : CREATE DATABASE bibliotheque;
-```
-
-**c. Modifie le profil actif dans `application.properties` :**
-```properties
-# Remplace cette ligne :
-spring.profiles.active=dev
-
-# Par celle-ci :
-# spring.profiles.active=postgres
-```
-
-**d. Crée le fichier `application-postgres.properties` :**
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/bibliotheque
-spring.datasource.username=postgres
-spring.datasource.password=ton-mot-de-passe
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-```
-
-**e. Relance l'application.**
+> L'application crée automatiquement 2 comptes de test au premier démarrage (voir plus bas).
 
 ---
 
 ## Tester l'API (curl)
-
-> Les commandes ci-dessous fonctionnent immédiatement après le lancement.
-> L'application crée automatiquement 2 comptes de test au démarrage.
 
 L'application crée automatiquement 2 comptes de test au démarrage :
 
@@ -202,98 +178,60 @@ BibliothequeApp/
 
 ### `FATAL: password authentication failed for user "postgres"`
 
-**Cause :** Le mot de passe PostgreSQL dans `application.properties` est incorrect.
+Le mot de passe dans `application.properties` est incorrect.
 
-**Solution :**
 ```bash
-# 1. Vérifie que PostgreSQL est démarré
+# 1. Démarre PostgreSQL
 sudo systemctl start postgresql
+pg_isready
 
-# 2. Connecte-toi et définis un nouveau mot de passe
+# 2. Définis le bon mot de passe
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD '36303631Hb';"
 
-# 3. Copie ce mot de passe exact dans application.properties
+# 3. Vérifie que la valeur est bien dans application.properties
 ```
 
 ### `FATAL: database "bibliotheque" does not exist`
 
-**Cause :** La base de données n'a pas été créée.
-
-**Solution :**
 ```bash
 sudo -u postgres createdb bibliotheque
 ```
 
-### `Port 8081 already in use`
+### `Connection refused` (port 5432)
 
-**Cause :** Un autre processus utilise déjà le port 8081.
+PostgreSQL n'est pas démarré :
 
-**Solution :**
 ```bash
-# Changer de port dans application.properties :
-server.port=8082
-
-# Ou tuer le processus qui bloque le port :
-sudo lsof -ti:8081 | xargs kill -9
-```
-
-### `java.net.ConnectException: Connection refused`
-
-**Cause :** PostgreSQL n'est pas en cours d'exécution.
-
-**Solution :**
-```bash
-# Démarrer PostgreSQL
 sudo systemctl start postgresql
-
-# Vérifier qu'il tourne
 pg_isready
 ```
 
-### L'application ne démarre pas car le port 8081 est déjà utilisé
+### `Port 8081 already in use`
 
-Voir l'erreur `Port 8081 already in use` ci-dessous.
-
-### `Field datasource in ... required a bean of type 'javax.sql.DataSource'`
-
-**Cause :** Le profil actif pointe vers PostgreSQL mais PostgreSQL n'est pas disponible.
-
-**Solution :** Utilise le profil H2 (aucune installation nécessaire) :
-```properties
-# Dans application.properties
-spring.profiles.active=dev
+```bash
+sudo lsof -ti:8081 | xargs kill -9
+# ou change : server.port=8082 dans application.properties
 ```
 
-### `package javax.servlet does not exist` ou erreurs de compilation
+### Erreurs de compilation
 
-**Cause :** Maven n'a pas téléchargé toutes les dépendances.
-
-**Solution :**
 ```bash
-# Nettoyer et forcer le re-téléchargement
 ./mvnw clean install -U
 ```
 
-### L'application compile mais les requêtes retournent `401 Unauthorized`
+### `401 Unauthorized`
 
-**Cause :** Token JWT manquant, invalide ou expiré.
+Token absent ou expiré → reconnecte-toi :
 
-**Solution :**
 ```bash
-# Reconnecte-toi pour obtenir un nouveau token
 curl -X POST http://localhost:8081/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@bibliotheque.com","motDePasse":"admin123"}'
-
-# Utilise le nouveau token dans le header
-curl http://localhost:8081/livres -H "Authorization: Bearer <nouveau-token>"
 ```
 
 ### `403 Forbidden` sur POST/PUT/DELETE
 
-**Cause :** Le compte utilisé n'a pas le rôle ADMIN.
-
-**Solution :** Connecte-toi avec le compte admin (`admin@bibliotheque.com` / `admin123`) ou inscris un nouveau compte et modifie son rôle en `ADMIN` dans la base de données.
+Le compte n'est pas ADMIN. Connecte-toi avec `admin@bibliotheque.com` / `admin123`.
 
 ---
 
