@@ -1,4 +1,4 @@
-package com.Bibliotheque.BibliothequeApp.services;
+package com.Bibliotheque.BibliothequeApp.repository;
 
 import com.Bibliotheque.BibliothequeApp.model.Livre;
 import org.springframework.data.jpa.repository.JpaRepository;
