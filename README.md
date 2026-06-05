@@ -161,7 +161,7 @@ Deux comptes sont créés automatiquement par `DataInitializer` au premier déma
 | `admin@bibliotheque.com` | `admin123` | `ADMIN` | Lecture + écriture (CRUD complet) |
 | `user@bibliotheque.com` | `user123` | `USER` | Lecture seule (GET) |
 
-> ⚠️ Ces comptes sont destinés au développement uniquement. **Change-les en production** (voir section Sécurité).
+>  Ces comptes sont destinés au développement uniquement. **Change-les en production** (voir section Sécurité).
 
 ---
 
@@ -176,7 +176,7 @@ Deux comptes sont créés automatiquement par `DataInitializer` au premier déma
 
 1. Connecte-toi d'abord via `POST /api/auth/login` (curl ou Swagger)
 2. Récupère le `token` de la réponse
-3. Clique sur le bouton **Authorize** (🔓) en haut de Swagger UI
+3. Clique sur le bouton **Authorize**  en haut de Swagger UI
 4. Entre : `Bearer <ton-token>`
 5. Tous les appels Swagger seront automatiquement authentifiés
 
@@ -351,7 +351,7 @@ Pour les détails complets (flux JWT, structure des claims, recommandations prod
 
 ## Dépannage
 
-### ❌ `FATAL: password authentication failed for user "postgres"`
+###  `FATAL: password authentication failed for user "postgres"`
 
 Le mot de passe dans `application.properties` ne correspond pas à celui de PostgreSQL.
 
@@ -368,13 +368,13 @@ sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'lemin';"
 # 4. Relance l'application
 ```
 
-### ❌ `FATAL: database "bibliotheque" does not exist`
+###  `FATAL: database "bibliotheque" does not exist`
 
 ```bash
 sudo -u postgres psql -c "CREATE DATABASE bibliotheque;"
 ```
 
-### ❌ `Connection refused` sur le port 5432
+###  `Connection refused` sur le port 5432
 
 PostgreSQL n'est pas démarré :
 
@@ -390,7 +390,7 @@ ss -tlnp | grep 5432
 ```
 Puis arrête le processus conflictuel.
 
-### ❌ `Port 8081 already in use`
+###  `Port 8081 already in use`
 
 ```bash
 # Tue le processus utilisant le port
@@ -400,7 +400,7 @@ sudo lsof -ti:8081 | xargs kill -9
 # server.port=8082
 ```
 
-### ❌ `release version 21 not supported` (erreur de compilation)
+###  `release version 21 not supported` (erreur de compilation)
 
 Ton JDK est plus ancien que la version cible du projet. Vérifie :
 ```bash
@@ -410,7 +410,7 @@ javac -version
 
 Le projet cible **Java 17** (modifiable dans `pom.xml` → `<java.version>`).
 
-### ❌ `401 Unauthorized` sur un endpoint protégé
+###  `401 Unauthorized` sur un endpoint protégé
 
 Token absent, invalide ou expiré. Reconnecte-toi :
 ```bash
@@ -419,13 +419,13 @@ curl -X POST http://localhost:8081/api/auth/login \
   -d '{"email":"admin@bibliotheque.com","motDePasse":"admin123"}'
 ```
 
-### ❌ `403 Forbidden` sur POST/PUT/DELETE
+###  `403 Forbidden` sur POST/PUT/DELETE
 
 Ton compte n'a pas le rôle `ADMIN`. Connecte-toi avec :
 - **Email** : `admin@bibliotheque.com`
 - **Mot de passe** : `admin123`
 
-### ❌ L'app ne crée pas les tables / erreurs Hibernate
+###  L'app ne crée pas les tables / erreurs Hibernate
 
 Vérifie que la base `bibliotheque` existe et que l'utilisateur `postgres` a les droits :
 ```bash
